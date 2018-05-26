@@ -40,3 +40,23 @@ func PostItem(c *gin.Context) {
 	}
 	c.JSON(201, i)
 }
+
+func DeleteItem(c *gin.Context) {
+	itemID := strings.TrimSpace(c.Param("id"))
+	if itemID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id_error"})
+		return
+	}
+
+	err := Is.DeleteItem(itemID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "find_error", "description": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"id":itemID})
+	return
+}
+
+func GetNullItem(c *gin.Context) {
+	return
+}

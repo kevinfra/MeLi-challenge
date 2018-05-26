@@ -18,6 +18,6 @@ func Configure(r *gin.Engine, db *sql.DB) {
 
 	r.GET("/item/:id", GetItem)
 	r.POST("/item", PostItem)
-	r.DELETE("/item/:id", nil)
-	r.GET("/item", nil)
+	r.DELETE("/item/:id", DeleteItem)
+	r.GET("/item", GetNullItem)
 }
