@@ -41,6 +41,7 @@ func PostItem(c *gin.Context) {
 	c.JSON(201, i)
 }
 
+// DeleteItem
 func DeleteItem(c *gin.Context) {
 	itemID := strings.TrimSpace(c.Param("id"))
 	if itemID == "" {
@@ -57,6 +58,8 @@ func DeleteItem(c *gin.Context) {
 	return
 }
 
+// GetNullItem
 func GetNullItem(c *gin.Context) {
+	c.JSON(200, gin.H{"id":0, "name": "", "description": ""})
 	return
 }
