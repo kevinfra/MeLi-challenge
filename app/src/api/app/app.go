@@ -16,7 +16,7 @@ var (
 )
 
 const (
-	port string = ":8080"
+	port string = ":3000"
 )
 
 // StartApp ...

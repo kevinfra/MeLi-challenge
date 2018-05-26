@@ -3,12 +3,12 @@ services:
   nginx:
     build: nginx
     ports:
-      - "8080"
+      - "8080:8080"
 
   app:
     build: app
     expose:
-      - "8080"
+      - "3000"
 
   db:
     image: "mysql:5.7"
