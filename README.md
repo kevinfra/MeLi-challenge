@@ -16,7 +16,13 @@ La API contiene los siguientes endpoints separados por secciones:
 - `DELETE /item/:id`: Recibe el id de un item y lo borra de la base de datos.
 - `GET /item`: Devuelve un item nulo (`"id": 0, "name": "", "description": ""`)
 
+## Google Drive
+
+- `GET /search-in-doc/:id`: Recibe el id y un parámetro `word`. Toma el id recibido y lo usa para buscar en Drive el archivo con ese id. Si lo encuentra, busca en el contenido del archivo si existe la palabra pasada por parámetro. Si encuentra la palabra, retorna 200. Si no, 404.
+- `POST /file`: 
+
 ## Dificultades encontradas:
 
-- Nunca habia usado Go, así que tuve que aprender desde 0.
+- Nunca había usado Go.
 - La correcta configuración de NGINX para que funcione entre los containers de Docker me tomó más tiempo del que esperaba, pues tuve problemas con la redirección de los requests.
+- Tampoco había usado nunca la API de Drive, lo que implicó que parte del tiempo lo dedique a entender su funcionamiento.
