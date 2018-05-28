@@ -22,7 +22,7 @@ func TestHandler(t *testing.T) {
 	// Mock our User() call.
 	is.ItemFn = func(id string) (*models.Item, error) {
 		if id != "100" {
-			t.Fatalf("unexpected id: %d", id)
+			t.Fatalf("unexpected id: %s", id)
 		}
 		return &models.Item{ID: "100", Name: "DaItam", Description: "Elnesto"}, nil
 	}
