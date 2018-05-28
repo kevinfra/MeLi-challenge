@@ -2,7 +2,7 @@ package app
 
 import (
 	"api/app/items"
-	"api/app/gdrive"
+	"api/app/documents"
 	"database/sql"
 	"fmt"
 	"time"
@@ -29,7 +29,7 @@ func StartApp() {
 	db := configDataBase()
 	items.Configure(r, db)
 	gdriveService := configureGdriveService()
-	gdrive.Configure(r, gdriveService)
+	documents.Configure(r, gdriveService, db)
 	r.Run(port)
 }
 
