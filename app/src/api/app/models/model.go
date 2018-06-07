@@ -18,7 +18,7 @@ type ItemServiceInterface interface {
 // Doc
 type Document struct {
 	ID 			string `json:"id"`
-	DriveId		string `json:"driveid"`
+	DriveId		string `json:"driveId"`
 	Title 		string `json:"title"`
 	Description string `json:"description"`
 }
@@ -29,4 +29,9 @@ type DocumentServiceInterface interface {
 	Documents() ([]*Document, error)
 	AddDocument(d *Document) error
 	SearchInDoc(d *Document, word string) error
+	InitializeConfig() error
+	Authorized() bool
+	LoadFromDB() error
+	LoadURLForTokenAuth() string
+	LoadFromToken(token string) error
 }

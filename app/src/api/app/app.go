@@ -5,14 +5,13 @@ import (
 	"api/app/documents"
 	"database/sql"
 	"fmt"
+	"io/ioutil"
+	"strings"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
-
-	"golang.org/x/net/context"
-    "golang.org/x/oauth2/google"
-    "google.golang.org/api/drive/v3"
 )
 
 var (
@@ -28,8 +27,7 @@ func StartApp() {
 	r = gin.Default()
 	db := configDataBase()
 	items.Configure(r, db)
-	gdriveService := configureGdriveService()
-	documents.Configure(r, gdriveService, db)
+	documents.Configure(r, db)
 	r.Run(port)
 }
 
@@ -45,37 +43,33 @@ func configDataBase() *sql.DB {
 			time.Sleep(1*time.Second)
 			continue
 		}
-		// This is bad practice... You should create a schema.sql with all the definitions
-		createTable(db)
+		loadSchemaDB(db)
 		return db
 	}
 
 }
 
-func createTable(db *sql.DB) {
-	// create table if not exists
-	sql_table := `
-	CREATE TABLE IF NOT EXISTS items (
-		id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
-		name TEXT,
-		description TEXT
-	);`
-	_, err := db.Exec(sql_table)
+func loadSchemaDB(db *sql.DB) {
+	schema, err := os.Open("/go/src/api/schema.sql")
 	if err != nil {
 		panic(err)
 	}
-}
-
-func configureGdriveService() *drive.Service {
-	ctx := context.TODO()
-
-    client, err := google.DefaultClient(ctx, drive.DriveScope)
-    if err != nil {
-		return nil
-    }
-	driveService, err := drive.New(client)
+	defer schema.Close()
+	file, err := ioutil.ReadAll(schema)
 	if err != nil {
-		return nil
+	    panic(err)
 	}
-	return driveService
+
+	requests := strings.Split(string(file), ";")
+
+	for _, request := range requests {
+		_, err := db.Exec(request)
+		if err != nil {
+			if err.Error() == "Error 1065: Query was empty" {
+				fmt.Printf("a request is empty \n")
+			} else {
+				panic(err)
+			}
+	    }
+	}
 }

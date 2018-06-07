@@ -6,14 +6,15 @@ import (
 	"api/app/models"
 	"database/sql"
 	"github.com/gin-gonic/gin"
-    "google.golang.org/api/drive/v3"
 )
 
 var (
 	Di models.DocumentServiceInterface
 )
 
-func Configure(r *gin.Engine, gdriveService *drive.Service, db *sql.DB) {
-	Di = &DocumentService{DB: db, GDrive: gdriveService}
+func Configure(r *gin.Engine, db *sql.DB) {
+	Di = &DocumentService{DB: db, GDrive: nil, ClientConfig: nil}
+	Di.InitializeConfig()
 	r.GET("/search-in-doc/:id", SearchInDoc)
+	r.POST("/auth-for-drive", AuthForDrive)
 }
