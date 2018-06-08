@@ -28,7 +28,7 @@ func (ds *DocumentService) Document(driveId string) (*models.Document, error) {
 	if err := row.Scan(&d.ID, &d.Title, &d.Description); err != nil {
 		if err == sql.ErrNoRows {
 			if ds.GDrive == nil {
-				return nil, errors.New("noGDrive")
+				return nil, errors.New("Drive Service not configured")
 			}
 			body, driveErr := ds.GDrive.Files.Get(driveId).Do()
 			if driveErr != nil {
@@ -37,7 +37,7 @@ func (ds *DocumentService) Document(driveId string) (*models.Document, error) {
 			d.DriveId = driveId
 			d.Title = body.Name
 			d.Description = body.Description
-			ds.AddDocument(&d)
+			//ds.AddDocument(&d)
 		} else {
 			return nil, err
 		}
@@ -73,18 +73,24 @@ func (ds *DocumentService) AddDocument(d *models.Document) error {
 }
 
 // SearchInDoc ...
-func (ds *DocumentService) SearchInDoc(d *models.Document, word string) error {
-	stmt, err := ds.DB.Prepare(`DELETE FROM items WHERE driveId = ?`)
+func (ds *DocumentService) SearchInDoc(id string, word string) (bool, error) {
+	query := "fullText contains '" + word + "'"
+	request := ds.GDrive.Files.List()
+	request.Q(query)
+	body, err := request.Do()
 	if err != nil {
-		return err
+		return false, err
 	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(d.DriveId)
-	if err != nil {
-		return err
+	files := body.Files
+	if len(files) == 0 {
+		return false, nil
 	}
-	return nil
+	for i := 0; i < len(files); i++ {
+		if files[i].Id == id {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func (ds *DocumentService) InitializeConfig() error {

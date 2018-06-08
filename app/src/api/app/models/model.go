@@ -28,7 +28,7 @@ type DocumentServiceInterface interface {
 	Document(id string) (*Document, error)
 	Documents() ([]*Document, error)
 	AddDocument(d *Document) error
-	SearchInDoc(d *Document, word string) error
+	SearchInDoc(id string, word string) (bool, error)
 	InitializeConfig() error
 	Authorized() bool
 	LoadFromDB() error

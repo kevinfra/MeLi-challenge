@@ -21,16 +21,18 @@ func SearchInDoc(c *gin.Context) {
 		return
 	}
 
-	driveFile, err := Di.Document(fileID)
+	found, err := Di.SearchInDoc(fileID, word)
 	if err != nil {
-		errormsg := "An error occurred: " + err.Error()
-		c.JSON(404, gin.H{"error": errormsg})
-		return
+		fmt.Printf(err.Error())
+		c.JSON(500, gin.H{"error": err.Error()})
+	}
+	if found {
+		fmt.Printf("Found!")
+		c.Status(200)
 	} else {
-		c.JSON(200, gin.H{"description": driveFile.Description})
+		c.Status(404)
 	}
 	return
-
 }
 
 func AuthForDrive(c *gin.Context) {
