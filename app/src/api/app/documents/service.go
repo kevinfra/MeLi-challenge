@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"strconv"
 	"encoding/json"
+	"regexp"
 
-	"fmt"
 	"io/ioutil"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -75,7 +75,17 @@ func (ds *DocumentService) AddDocument(d *models.Document) error {
 
 // SearchInDoc ...
 func (ds *DocumentService) SearchInDoc(id string, word string) (bool, error) {
+	validWord, err := regexp.MatchString(`(^\w+$)`, word)
+	if err != nil {
+		return false, err
+	}
+	if !validWord {
+		return false, errors.New("Invalid word")
+	}
 	query := "fullText contains '" + word + "'"
+	if ds.GDrive == nil {
+		return false, errors.New("Authentication failed")
+	}
 	request := ds.GDrive.Files.List()
 	request.Q(query)
 	body, err := request.Do()
@@ -158,7 +168,6 @@ func tokenFromDB(db *sql.DB) (*oauth2.Token, error) {
 	}
 	err := json.Unmarshal(token, &driveToken)
 	if err != nil {
-		fmt.Printf("Falla unmarshaleando\n")
 		return &driveToken, err
 	}
     return &driveToken, nil
