@@ -84,7 +84,7 @@ func (ds *DocumentService) SearchInDoc(id string, word string) (bool, error) {
 	}
 	query := "fullText contains '" + word + "'"
 	if ds.GDrive == nil {
-		return false, errors.New("Authentication failed")
+		return false, errors.New("Not authorized yet.")
 	}
 	request := ds.GDrive.Files.List()
 	request.Q(query)
