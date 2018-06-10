@@ -4,6 +4,7 @@ import (
 	"api/app/models"
 	"database/sql"
 	"strconv"
+	"encoding/json"
 
 	"fmt"
 	"io/ioutil"
@@ -116,14 +117,12 @@ func (ds *DocumentService) LoadURLForTokenAuth() string {
 
 func (ds *DocumentService) LoadFromDB() error {
 	var err error
-	tok, err := tokenFromDB(ds.DB)
+	driveToken, err := tokenFromDB(ds.DB)
     if err != nil {
-		fmt.Printf(err.Error())
 		return err
 	}
-	ds.GDrive, err = getServiceWithToken(tok, ds.ClientConfig)
+	ds.GDrive, err = getServiceWithToken(driveToken, ds.ClientConfig)
 	if err != nil {
-		fmt.Printf(err.Error())
 		return err
 	}
 	return nil
@@ -131,18 +130,17 @@ func (ds *DocumentService) LoadFromDB() error {
 
 func (ds *DocumentService) LoadFromToken(token string) error {
 	var err error
-    saveToken(token, ds.DB)
-	ds.GDrive, err = getServiceWithToken(token, ds.ClientConfig)
+	driveToken, err := ds.ClientConfig.Exchange(oauth2.NoContext, token)
+	if err != nil {
+		return err
+	}
+    saveToken(driveToken, ds.DB)
+	ds.GDrive, err = getServiceWithToken(driveToken, ds.ClientConfig)
 	return err
 }
 
-func getServiceWithToken(token string, config *oauth2.Config) (*drive.Service, error) {
-	tok, err := config.Exchange(oauth2.NoContext, token)
-    if err != nil {
-		fmt.Printf(err.Error())
-		return nil, err
-    }
-	client := config.Client(context.Background(), tok)
+func getServiceWithToken(token *oauth2.Token, config *oauth2.Config) (*drive.Service, error) {
+	client := config.Client(context.Background(), token)
 	service, err := drive.New(client)
 	if err != nil {
 		return nil, err
@@ -151,25 +149,31 @@ func getServiceWithToken(token string, config *oauth2.Config) (*drive.Service, e
 }
 
 // Retrieves a token from DB.
-func tokenFromDB(db *sql.DB) (string, error) {
-	var id int
-	var token string
-	row := db.QueryRow(`SELECT token FROM tokens WHERE id = (SELECT LAST_INSERT_ID())`)
-	if err := row.Scan(&id, &token); err != nil {
-		return "", err
+func tokenFromDB(db *sql.DB) (*oauth2.Token, error) {
+	var token []byte
+	var driveToken oauth2.Token
+	row := db.QueryRow(`SELECT token FROM tokens WHERE id = (SELECT MAX(id) FROM tokens)`)
+	if err := row.Scan(&token); err != nil {
+		return &driveToken, err
 	}
-    return token, nil
+	err := json.Unmarshal(token, &driveToken)
+	if err != nil {
+		fmt.Printf("Falla unmarshaleando\n")
+		return &driveToken, err
+	}
+    return &driveToken, nil
 }
 
 // Saves a token.
-func saveToken(token string, db *sql.DB) {
+func saveToken(driveToken *oauth2.Token, db *sql.DB) {
     stmt, err := db.Prepare(`INSERT INTO tokens(token) values(?)`)
 	if err != nil {
 		panic(err)
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(token)
+	serialziedToken, err := json.Marshal(driveToken)
+	_, err = stmt.Exec(serialziedToken)
 	if err != nil {
 		panic(err)
 	}

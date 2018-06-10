@@ -43,6 +43,7 @@ func AuthForDrive(c *gin.Context) {
 		if token == "" {
 			err := Di.LoadFromDB()
 			if err != nil {
+				fmt.Printf(err.Error())
 				c.JSON(200, gin.H{"success":Di.LoadURLForTokenAuth()})
 				return
 			}

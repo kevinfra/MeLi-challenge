@@ -16,5 +16,5 @@ CREATE TABLE IF NOT EXISTS documents (
 -- Create tokens table
 CREATE TABLE IF NOT EXISTS tokens (
 	id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
-	token TEXT
+	token BLOB
 );
