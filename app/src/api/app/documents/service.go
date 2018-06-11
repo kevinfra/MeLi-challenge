@@ -51,13 +51,24 @@ func (ds *DocumentService) Documents() ([]*models.Document, error) {
 	return nil, nil
 }
 
-// AddDocument ...
-func (ds *DocumentService) AddDocument(d *models.Document) error {
+// CreateDocument ...
+func (ds *DocumentService) CreateDocument(d *models.Document) error {
 	stmt, err := ds.DB.Prepare(`INSERT INTO documents(driveId,title,description) values(?, ?, ?)`)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
+
+	var driveFile drive.File
+	driveFile.Name = d.Title
+	driveFile.Description = d.Description
+	createFileService := drive.NewFilesService(ds.GDrive).Create(&driveFile)
+
+	createdFile, err := createFileService.Do()
+	if err != nil {
+		return err
+	}
+	d.DriveId = createdFile.Id
 
 	res, err := stmt.Exec(d.DriveId, d.Title, d.Description)
 	if err != nil {
@@ -195,7 +206,7 @@ func driveConfig() (*oauth2.Config, error) {
     }
 
     // If modifying these scopes, delete your previously saved client_secret.json.
-    driveConfig, err := google.ConfigFromJSON(b, drive.DriveMetadataReadonlyScope)
+    driveConfig, err := google.ConfigFromJSON(b, drive.DriveFileScope)
     if err != nil {
         panic("Unable to parse client secret file to config: " + err.Error())
     }
