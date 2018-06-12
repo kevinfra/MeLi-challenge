@@ -4,6 +4,7 @@ import (
 	"api/app/models"
 	"database/sql"
 	"strconv"
+	"regexp"
 )
 
 // ItemService ...
@@ -14,6 +15,10 @@ type ItemService struct {
 // Item ...
 func (s *ItemService) Item(id string) (*models.Item, error) {
 	var i models.Item
+	validId, err := regexp.MatchString(`(^[0-9]+$)`, id)
+	if !validId || err != nil {
+		return nil, err
+	}
 	row := s.DB.QueryRow(`SELECT id, name, description FROM items WHERE id = ?`, id)
 	if err := row.Scan(&i.ID, &i.Name, &i.Description); err != nil {
 		return nil, err
@@ -23,7 +28,24 @@ func (s *ItemService) Item(id string) (*models.Item, error) {
 
 // Items ...
 func (s *ItemService) Items() ([]*models.Item, error) {
-	return nil, nil
+	var items []*models.Item
+	rows, err := s.DB.Query(`SELECT id, name, description FROM items`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var item models.Item
+		if err := rows.Scan(&item.ID, &item.Name, &item.Description); err != nil {
+			return nil, err
+		}
+		items = append(items, &item)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 // CreateItem ...
