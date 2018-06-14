@@ -206,7 +206,7 @@ func driveConfig() (*oauth2.Config, error) {
     }
 
     // If modifying these scopes, delete your previously saved client_secret.json.
-    driveConfig, err := google.ConfigFromJSON(b, drive.DriveFileScope)
+    driveConfig, err := google.ConfigFromJSON(b, drive.DriveScope)
     if err != nil {
         panic("Unable to parse client secret file to config: " + err.Error())
     }
